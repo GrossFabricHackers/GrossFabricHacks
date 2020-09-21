@@ -28,7 +28,7 @@ public class AccessAllower {
 
         try {
             final Class<?> reflectionClass = Class.forName(ReflectionUtil.JAVA_9 ? "jdk.internal.reflect.Reflection" : "sun.reflect.Reflection");
-            final Class<?> unsafeQualifiedFieldAccessorImplClass = Class.forName("jdk.internal.reflect.UnsafeQualifiedFieldAccessorImpl");
+            final Class<?> unsafeQualifiedFieldAccessorImplClass = ReflectionUtil.JAVA_9 ? Class.forName("jdk.internal.reflect.UnsafeQualifiedFieldAccessorImpl") : null;
             final CompatibleClassFileTransformer transformer = (final ClassLoader loader,
                                                                 final String className,
                                                                 final Class<?> classBeingRedefined,
@@ -46,7 +46,7 @@ public class AccessAllower {
                     transformMethodHandlesLookup(node);
                 } else if (classBeingRedefined == reflectionClass) {
                     transformReflection(node);
-                } else if (classBeingRedefined == unsafeQualifiedFieldAccessorImplClass) {
+                } else if (unsafeQualifiedFieldAccessorImplClass != null && classBeingRedefined == unsafeQualifiedFieldAccessorImplClass) {
                     transformUnsafeQualifiedFieldAccessorImpl(node);
                 } else {
                     return classfileBuffer;
@@ -59,7 +59,10 @@ public class AccessAllower {
             };
 
             InstrumentationApi.INSTRUMENTATION.addTransformer(transformer, true);
-            InstrumentationApi.INSTRUMENTATION.retransformClasses(AccessibleObject.class, Field.class, MethodHandles.Lookup.class, reflectionClass, unsafeQualifiedFieldAccessorImplClass);
+            InstrumentationApi.INSTRUMENTATION.retransformClasses(AccessibleObject.class, Field.class, MethodHandles.Lookup.class, reflectionClass);
+            if(unsafeQualifiedFieldAccessorImplClass != null) {
+                InstrumentationApi.INSTRUMENTATION.retransformClasses(unsafeQualifiedFieldAccessorImplClass);
+            }
             InstrumentationApi.INSTRUMENTATION.removeTransformer(transformer);
         } catch (final Throwable throwable) {
             throw new RuntimeException(throwable);
