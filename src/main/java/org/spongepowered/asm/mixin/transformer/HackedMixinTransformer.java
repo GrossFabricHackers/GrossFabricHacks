@@ -14,42 +14,32 @@ public class HackedMixinTransformer extends MixinTransformer {
 
     @Override
     public byte[] transformClass(MixinEnvironment environment, String name, byte[] classBytes) {
-        // raw class patching
-        if (GrossFabricHacks.Common.preMixinRawClassTransformer != null) {
-            classBytes = GrossFabricHacks.Common.preMixinRawClassTransformer.transform(name, classBytes);
-        }
-
-        // ASM patching
         return this.transform(environment, this.readClass(classBytes), classBytes);
     }
 
-    public byte[] transform(MixinEnvironment environment, ClassNode classNode, byte[] original) {
-        String name = classNode.name;
-
-        if (GrossFabricHacks.Common.shouldWrite) {
-            if (GrossFabricHacks.Common.preMixinAsmClassTransformer != null) {
-                GrossFabricHacks.Common.preMixinAsmClassTransformer.transform(classNode);
+    public byte[] transform(MixinEnvironment environment, ClassNode classNode, byte[] bytecode) {
+        // raw class patching
+        if (GrossFabricHacks.Common.preMixinRawClassTransformer != null) {
+            if (bytecode == null) {
+                bytecode = this.writeClass(classNode);
             }
 
-            processor.applyMixins(environment, name.replace('/', '.'), classNode);
-
-            if (GrossFabricHacks.Common.postMixinAsmClassTransformer != null) {
-                GrossFabricHacks.Common.postMixinAsmClassTransformer.transform(classNode);
-            }
-
-            // post mixin raw patching
-            if (GrossFabricHacks.Common.postMixinRawClassTransformer != null) {
-                return GrossFabricHacks.Common.postMixinRawClassTransformer.transform(name, this.writeClass(classNode));
-            }
-
-            return this.writeClass(classNode);
+            bytecode = GrossFabricHacks.Common.preMixinRawClassTransformer.transform(classNode.name, bytecode);
         }
 
-        if (processor.applyMixins(environment, name.replace('/', '.'), classNode)) {
-            return this.writeClass(classNode);
+        boolean regenerate = (GrossFabricHacks.Common.preMixinAsmClassTransformer != null && GrossFabricHacks.Common.preMixinAsmClassTransformer.transform(classNode))
+            | processor.applyMixins(environment, classNode.name.replace('/', '.'), classNode);
+
+        if (GrossFabricHacks.Common.postMixinAsmClassTransformer != null) {
+            regenerate |= GrossFabricHacks.Common.postMixinAsmClassTransformer.transform(classNode);
         }
 
-        return original;
+        // post mixin raw patching
+        if (GrossFabricHacks.Common.postMixinRawClassTransformer != null) {
+            return GrossFabricHacks.Common.postMixinRawClassTransformer.transform(classNode.name, regenerate || bytecode == null ? this.writeClass(classNode) : bytecode);
+        }
+
+        return regenerate ? this.writeClass(classNode) : bytecode;
     }
 
     static {

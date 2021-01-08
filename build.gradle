@@ -7,8 +7,8 @@ plugins {
 project.group = "net.devtech"
 project.version = "0.9.0"
 
-final String minecraftVersion = "20w51a"
-final String yarnBuild = "5"
+final String minecraftVersion = "1.16.4"//"20w51a"
+final String yarnBuild = "7"//"5"
 
 allprojects {
     plugins.apply("fabric-loom")
@@ -20,6 +20,7 @@ allprojects {
         mavenLocal()
 
         maven {url = "https://dl.bintray.com/user11681/maven"}
+        maven {url = "https://www.cursemaven.com"}
     }
 
     dependencies {
@@ -40,7 +41,9 @@ allprojects {
         modApi(include("user11681:dynamicentry:+"))
         modApi(include("user11681:reflect:+"))
 
-//    modApi("net.fabricmc.fabric-api:fabric-api:+")
+        modImplementation("curse.maven:antixray-411170:3149338")
+        modImplementation("curse.maven:xaerosminimap-263420:3153530")
+        modImplementation("net.fabricmc.fabric-api:fabric-api:0.29.3+1.16")
     }
 
 // ensure that the encoding is set to UTF-8, no matter what the system default is

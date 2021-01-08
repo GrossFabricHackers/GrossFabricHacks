@@ -17,7 +17,7 @@ public class TransformerApi {
 	 */
 	public static void manualLoad() {
 		if (GrossFabricHacks.Common.mixinLoaded) {
-			Classes.load(GrossFabricHacks.Common.classLoader.getOriginalLoader(), "org.spongepowered.asm.mixin.transformer.HackedMixinTransformer");
+			Classes.load(GrossFabricHacks.Common.originalClassLoader, "org.spongepowered.asm.mixin.transformer.HackedMixinTransformer");
 		} else {
 			GrossFabricHacks.Common.shouldHackMixin = true;
 		}

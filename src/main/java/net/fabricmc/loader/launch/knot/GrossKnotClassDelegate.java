@@ -5,6 +5,7 @@ import net.devtech.grossfabrichacks.GrossFabricHacks;
 import net.devtech.grossfabrichacks.transformer.TransformerApi;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.game.GameProvider;
+import net.gudenau.lib.unsafe.Unsafe;
 import org.spongepowered.asm.mixin.transformer.FabricMixinTransformerProxy;
 import user11681.reflect.Accessor;
 
@@ -21,7 +22,7 @@ public class GrossKnotClassDelegate extends KnotClassDelegate {
         try {
             return super.getRawClassByteArray(name, false);
         } catch (IOException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
+            throw Unsafe.throwException(exception);
         }
     }
 

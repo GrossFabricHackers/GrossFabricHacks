@@ -18,10 +18,13 @@ import net.fabricmc.loader.api.LanguageAdapter;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.gui.FabricGuiEntry;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
+import net.fabricmc.loader.launch.knot.UnsafeKnotClassLoader;
 import net.gudenau.lib.unsafe.Unsafe;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.logging.log4j.LogManager;
 import user11681.dynamicentry.DynamicEntry;
+import user11681.reflect.Classes;
+import user11681.reflect.Reflect;
 
 public class GrossFabricHacks implements LanguageAdapter {
     @Override
@@ -31,20 +34,22 @@ public class GrossFabricHacks implements LanguageAdapter {
      * This class is intended to be loaded by the class loader that loaded {@linkplain net.fabricmc.loader.launch.knot.KnotClassLoader KnotClassLoader}<br>
      * so that classes loaded by different class loaders may share information.<br>
      * It may also be used for storing constants.<br>
-     * It should be safe to load from {@linkplain GrossClassLoader#getOriginalLoader() the original class loader} and {@linkplain net.fabricmc.loader.launch.knot.KnotClassLoader KnotClassLoader}.
+     * It should be safe to load from {@linkplain Common#originalClassLoader the original class loader} and {@linkplain net.fabricmc.loader.launch.knot.KnotClassLoader KnotClassLoader}.
      */
     @SuppressWarnings("JavadocReference")
     public static class Common {
         /**
-         * the system property used temporarily for transferring information about<br>
-         * the classes that have to be checked in {@linkplain GrossClassLoader#getOriginalLoader() the original class loader} first
+         * The property used for storing an array of names of classes to load instead of others present with the same name.
          */
         public static final String CLASS_PROPERTY = "gfh.common.classes";
-        public static final String CLASS_DELIMITER = ",";
+        /**
+         * The delimiter used when storing arrays as system properties.
+         */
+        public static final String DELIMITER = ",";
 
         public static final ClassLoader targetClassLoader = FabricLauncherBase.getLauncher().getTargetClassLoader();
-
-        public static GrossClassLoader classLoader;
+        public static final ClassLoader originalClassLoader = targetClassLoader.getClass().getClassLoader();
+        public static final GrossClassLoader classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
 
         public static boolean mixinLoaded;
         public static boolean shouldHackMixin;
@@ -67,6 +72,13 @@ public class GrossFabricHacks implements LanguageAdapter {
             return Unsafe.throwException(throwable);
         }
 
+        static {
+            URLAdder.addURL(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
+
+            for (String klass : System.clearProperty(CLASS_PROPERTY).split(DELIMITER)) {
+                classLoader.override(originalClassLoader, klass);
+            }
+        }
     }
 
     static {
@@ -88,7 +100,7 @@ public class GrossFabricHacks implements LanguageAdapter {
             DynamicEntry.execute("gfh:relaunch", RelaunchEntrypoint.class, handler);
 
             if (relaunch.booleanValue()) {
-                new Relauncher().mainClass(Main.NAME).property(Relauncher.ENTRYPOINT_PROPERTY, String.join(Common.CLASS_DELIMITER, entrypointNames)).relaunch();
+                new Relauncher().mainClass(Main.NAME).property(Relauncher.ENTRYPOINT_PROPERTY, String.join(Common.DELIMITER, entrypointNames)).relaunch();
             }
         }
 
@@ -106,22 +118,19 @@ public class GrossFabricHacks implements LanguageAdapter {
             "net.devtech.grossfabrichacks.transformer.TransformerApi",
             "net.devtech.grossfabrichacks.instrumentation.AsmInstrumentationTransformer",
             "net.devtech.grossfabrichacks.instrumentation.InstrumentationApi",
-            "net.devtech.grossfabrichacks.GrossFabricHacks$Common",
             "net.devtech.grossfabrichacks.loader.URLAdder",
             "net.devtech.grossfabrichacks.loader.GrossClassLoader"
         };
 
-        System.setProperty(Common.CLASS_PROPERTY, String.join(Common.CLASS_DELIMITER, primaryClasses));
+        System.setProperty(Common.CLASS_PROPERTY, String.join(Common.DELIMITER, primaryClasses));
 
         ClassLoader preKnotClassLoader = GrossFabricHacks.class.getClassLoader().getClass().getClassLoader();
 
-        for (int i = FabricLauncherBase.getLauncher().isDevelopment() ? 6 : 0, length = primaryClasses.length; i < length; i++) {
-            UnsafeUtil.findClass(primaryClasses[i], preKnotClassLoader);
+        for (String klass : primaryClasses) {
+            UnsafeUtil.findClass(klass, preKnotClassLoader);
         }
 
-        URLAdder.addURL(ClassLoader.getSystemClassLoader(), GrossFabricHacks.class.getProtectionDomain().getCodeSource().getLocation());
-
-        Unsafe.ensureClassInitialized(UnsafeUtil.findClass("net.fabricmc.loader.launch.knot.UnsafeKnotClassLoader", preKnotClassLoader));
+        Unsafe.ensureClassInitialized(UnsafeUtil.findClass(GrossFabricHacks.class.getName() + "$Common", preKnotClassLoader));
 
         DynamicEntry.tryExecute("gfh:prePrePreLaunch", PrePrePreLaunch.class, PrePrePreLaunch::onPrePrePreLaunch);
     }

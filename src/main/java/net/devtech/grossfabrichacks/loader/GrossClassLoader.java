@@ -4,8 +4,6 @@ import java.util.Map;
 import net.devtech.grossfabrichacks.GrossFabricHacks;
 
 public interface GrossClassLoader {
-    ClassLoader getOriginalLoader();
-
     Class<?> getLoadedClass(String name);
 
     boolean isClassLoaded(String name);

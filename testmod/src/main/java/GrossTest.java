@@ -8,8 +8,8 @@ public class GrossTest implements PrePrePreLaunch {
     @Override
     public void onPrePrePreLaunch() {
         transformerTest();
-        instrumentationTest();
-        relaunch();
+//        instrumentationTest();
+//        relaunch();
     }
 
     private static void relaunch() {
@@ -19,7 +19,11 @@ public class GrossTest implements PrePrePreLaunch {
     }
 
     private static void transformerTest() {
-        TransformerApi.registerPostMixinAsmClassTransformer((ClassNode node) -> System.out.println(node.name));
+        TransformerApi.registerPostMixinAsmClassTransformer((ClassNode node) -> {
+            System.out.println(node.name);
+
+            return false;
+        });
     }
 
     private static void instrumentationTest() {

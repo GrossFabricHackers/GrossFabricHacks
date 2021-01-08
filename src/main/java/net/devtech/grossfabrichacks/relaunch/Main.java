@@ -15,7 +15,7 @@ public class Main {
         if (entrypoints != null) {
             Class.forName("net.devtech.grossfabrichacks.entrypoints.RelaunchEntrypoint");
 
-            for (String entrypoint : entrypoints.split(GrossFabricHacks.Common.CLASS_DELIMITER)) {
+            for (String entrypoint : entrypoints.split(GrossFabricHacks.Common.DELIMITER)) {
                 ((RelaunchEntrypoint) TransformingClassLoader.instance.loadClass(entrypoint).getDeclaredConstructor().newInstance()).onRelaunch();
             }
         }

@@ -161,20 +161,20 @@ public class UnsafeUtil {
         final long offset = Unsafe.arrayBaseOffset(objects.getClass());
         final long scale = Unsafe.arrayIndexScale(objects.getClass());
 
-        return (Unsafe.getInt(objects, offset + index * scale) & 0xFFFFFFFFL) * Classes.addressFactor;
+        return Integer.toUnsignedLong(Unsafe.getInt(objects, offset + index * scale)) * Classes.addressFactor;
     }
 
     public static <T> Class<T> findClass(String binaryName, ClassLoader loader) {
         try {
+            return (Class<T>) loader.loadClass(binaryName);
+        } catch (ClassNotFoundException exception) {
             try {
-                return (Class<T>) loader.loadClass(binaryName);
-            } catch (ClassNotFoundException exception) {
-                final byte[] bytecode = launcher.getClassByteArray(binaryName, false);
+                byte[] bytecode = launcher.getClassByteArray(binaryName, false);
 
                 return Unsafe.defineClass(binaryName, bytecode, 0, bytecode.length, loader, UnsafeUtil.class.getProtectionDomain());
+            } catch (IOException ioException) {
+                throw Unsafe.throwException(ioException);
             }
-        } catch (IOException exception) {
-            throw Unsafe.throwException(exception);
         }
     }
 
