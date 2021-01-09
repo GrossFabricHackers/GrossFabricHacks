@@ -18,7 +18,6 @@ public class HackedMixinTransformer extends MixinTransformer {
     }
 
     public byte[] transform(MixinEnvironment environment, ClassNode classNode, byte[] bytecode) {
-        // raw class patching
         if (GrossFabricHacks.Common.preMixinRawClassTransformer != null) {
             if (bytecode == null) {
                 bytecode = this.writeClass(classNode);
@@ -37,7 +36,6 @@ public class HackedMixinTransformer extends MixinTransformer {
             regenerate |= GrossFabricHacks.Common.postMixinAsmClassTransformer.transform(classNode);
         }
 
-        // post mixin raw patching
         if (GrossFabricHacks.Common.postMixinRawClassTransformer != null) {
             return GrossFabricHacks.Common.postMixinRawClassTransformer.transform(classNode.name, regenerate ? this.writeClass(classNode) : bytecode);
         }
