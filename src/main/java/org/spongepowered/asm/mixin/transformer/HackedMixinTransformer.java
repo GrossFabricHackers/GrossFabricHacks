@@ -24,7 +24,9 @@ public class HackedMixinTransformer extends MixinTransformer {
                 bytecode = this.writeClass(classNode);
             }
 
-            bytecode = GrossFabricHacks.Common.preMixinRawClassTransformer.transform(classNode.name, bytecode);
+            if (bytecode != (bytecode = GrossFabricHacks.Common.preMixinRawClassTransformer.transform(classNode.name, bytecode))) {
+                classNode = this.readClass(bytecode);
+            }
         }
 
         boolean regenerate = (GrossFabricHacks.Common.preMixinAsmClassTransformer != null && GrossFabricHacks.Common.preMixinAsmClassTransformer.transform(classNode))

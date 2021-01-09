@@ -5,10 +5,10 @@ plugins {
 }
 
 project.group = "net.devtech"
-project.version = "0.9.0"
+project.version = "1.0.0"
 
-final String minecraftVersion = "1.16.4"//"20w51a"
-final String yarnBuild = "7"//"5"
+final String minecraftVersion = "1.16.4"
+final String yarnBuild = "7"
 
 allprojects {
     plugins.apply("fabric-loom")
@@ -33,6 +33,7 @@ allprojects {
         // concern
         // extraLibs files("${System.getProperty('java.home')}/../lib/tools.jar")
 
+        // log spam control
         modApi("user11681:narratoroff:+")
         modApi("user11681:noauth:+")
 
@@ -41,7 +42,7 @@ allprojects {
         modApi(include("user11681:dynamicentry:+"))
         modApi(include("user11681:reflect:+"))
 
-        modImplementation("curse.maven:antixray-411170:3149338")
+//        modImplementation("curse.maven:antixray-411170:3149338")
         modImplementation("curse.maven:xaerosminimap-263420:3153530")
         modImplementation("net.fabricmc.fabric-api:fabric-api:0.29.3+1.16")
     }
@@ -57,13 +58,8 @@ allprojects {
 processResources {
     inputs.property("version", project.version)
 
-    from(sourceSets.main.resources.srcDirs) {
-        include("fabric.mod.json")
-        expand("version": project.version)
-    }
-
-    from(sourceSets.main.resources.srcDirs) {
-        exclude("fabric.mod.json")
+    filesMatching("fabric.mod.json") {
+        expand(version: project.version)
     }
 }
 
