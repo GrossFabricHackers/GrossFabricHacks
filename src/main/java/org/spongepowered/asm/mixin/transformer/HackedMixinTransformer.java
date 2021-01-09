@@ -30,7 +30,8 @@ public class HackedMixinTransformer extends MixinTransformer {
         }
 
         boolean regenerate = (GrossFabricHacks.Common.preMixinAsmClassTransformer != null && GrossFabricHacks.Common.preMixinAsmClassTransformer.transform(classNode))
-            | processor.applyMixins(environment, classNode.name.replace('/', '.'), classNode);
+            | processor.applyMixins(environment, classNode.name.replace('/', '.'), classNode)
+            || bytecode == null;
 
         if (GrossFabricHacks.Common.postMixinAsmClassTransformer != null) {
             regenerate |= GrossFabricHacks.Common.postMixinAsmClassTransformer.transform(classNode);
@@ -38,7 +39,7 @@ public class HackedMixinTransformer extends MixinTransformer {
 
         // post mixin raw patching
         if (GrossFabricHacks.Common.postMixinRawClassTransformer != null) {
-            return GrossFabricHacks.Common.postMixinRawClassTransformer.transform(classNode.name, regenerate || bytecode == null ? this.writeClass(classNode) : bytecode);
+            return GrossFabricHacks.Common.postMixinRawClassTransformer.transform(classNode.name, regenerate ? this.writeClass(classNode) : bytecode);
         }
 
         return regenerate ? this.writeClass(classNode) : bytecode;
