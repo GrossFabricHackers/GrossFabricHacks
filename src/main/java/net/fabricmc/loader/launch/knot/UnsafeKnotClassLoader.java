@@ -9,7 +9,7 @@ import net.fabricmc.loader.game.GameProvider;
 import net.fabricmc.loader.launch.common.FabricLauncherBase;
 import user11681.reflect.Classes;
 
-@SuppressWarnings("JavadocReference")
+@SuppressWarnings({"JavadocReference", "deprecation"})
 public class UnsafeKnotClassLoader extends KnotClassLoader implements GrossClassLoader {
     /**
      * {@linkplain net.fabricmc.loader.launch.server.InjectingURLClassLoader InjectingURLClassLoader} in production servers; {@linkplain ClassLoader#getSystemClassLoader system class loader} everywhere else
