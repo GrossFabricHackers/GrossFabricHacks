@@ -17,8 +17,7 @@ public class UnsafeKnotClassLoader extends KnotClassLoader implements GrossClass
     private static final ClassLoader preKnotClassLoader = KnotClassLoader.class.getClassLoader();
     private static final URLClassLoader parent;
     private static final GrossKnotClassDelegate delegate;
-
-    public static final Object2ReferenceOpenHashMap<String, Class<?>> overridingClasses = new Object2ReferenceOpenHashMap<>();
+    private static final Object2ReferenceOpenHashMap<String, Class<?>> overridingClasses = new Object2ReferenceOpenHashMap<>();
 
     public UnsafeKnotClassLoader(boolean isDevelopment, EnvType envType, GameProvider provider) {
         super(isDevelopment, envType, provider);

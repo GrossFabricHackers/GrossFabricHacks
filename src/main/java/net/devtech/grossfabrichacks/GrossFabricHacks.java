@@ -49,7 +49,7 @@ public class GrossFabricHacks implements LanguageAdapter {
 
         public static final ClassLoader targetClassLoader = FabricLauncherBase.getLauncher().getTargetClassLoader();
         public static final ClassLoader originalClassLoader = targetClassLoader.getClass().getClassLoader();
-        public static final GrossClassLoader classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
+        public static final GrossClassLoader classLoader;
 
         public static boolean mixinLoaded;
         public static boolean shouldHackMixin;
@@ -74,6 +74,8 @@ public class GrossFabricHacks implements LanguageAdapter {
 
         static {
             URLAdder.addURL(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
+
+            classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
 
             for (String klass : System.clearProperty(CLASS_PROPERTY).split(DELIMITER)) {
                 classLoader.override(originalClassLoader, klass);
@@ -104,7 +106,7 @@ public class GrossFabricHacks implements LanguageAdapter {
             }
         }
 
-        String[] primaryClasses = new String[]{
+        String[] bootstrapClasses = new String[]{
             "net.gudenau.lib.unsafe.Unsafe",
             "user11681.reflect.Accessor",
             "user11681.reflect.Classes",
@@ -122,11 +124,11 @@ public class GrossFabricHacks implements LanguageAdapter {
             "net.devtech.grossfabrichacks.loader.GrossClassLoader"
         };
 
-        System.setProperty(Common.CLASS_PROPERTY, String.join(Common.DELIMITER, primaryClasses));
+        System.setProperty(Common.CLASS_PROPERTY, String.join(Common.DELIMITER, bootstrapClasses));
 
         ClassLoader preKnotClassLoader = GrossFabricHacks.class.getClassLoader().getClass().getClassLoader();
 
-        for (String klass : primaryClasses) {
+        for (String klass : bootstrapClasses) {
             UnsafeUtil.findClass(klass, preKnotClassLoader);
         }
 
