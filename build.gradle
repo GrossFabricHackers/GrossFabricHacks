@@ -10,11 +10,11 @@ project.version = "1.0.0"
 final String minecraftVersion = "1.16.4"
 final String yarnBuild = "7"
 
+sourceCompatibility = 8
+targetCompatibility = 8
+
 allprojects {
     plugins.apply("fabric-loom")
-
-    sourceCompatibility = 8
-    targetCompatibility = 8
 
     repositories {
         mavenLocal()
@@ -45,6 +45,14 @@ allprojects {
 //        modImplementation("curse.maven:antixray-411170:3149338")
         modImplementation("curse.maven:xaerosminimap-263420:3153530")
         modImplementation("net.fabricmc.fabric-api:fabric-api:0.29.3+1.16")
+    }
+
+    [tasks.remapJar, tasks.remapSourcesJar].forEach {Task task ->
+        task.doLast {
+            task.inputs.files.forEach {File file ->
+                file.delete()
+            }
+        }
     }
 
 // ensure that the encoding is set to UTF-8, no matter what the system default is
