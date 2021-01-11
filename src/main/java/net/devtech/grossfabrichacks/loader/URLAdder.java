@@ -64,29 +64,27 @@ public class URLAdder {
     }
 
     public static void addNestedJARs(ClassLoader classLoader, Path root) {
-        if (root.toString().endsWith(".jar")) {
-            try (JarInputStream stream = new JarInputStream(Files.newInputStream(root))) {
-                JarEntry entry = stream.getNextJarEntry();
+        try (JarInputStream stream = new JarInputStream(Files.newInputStream(root))) {
+            JarEntry entry = stream.getNextJarEntry();
 
-                while (entry != null) {
-                    if (entry.getName().endsWith(".jar")) {
-                        Path inMemoryPath = inMemoryFs.getPath(entry.getName());
+            while (entry != null) {
+                if (entry.getName().endsWith(".jar")) {
+                    Path inMemoryPath = inMemoryFs.getPath(entry.getName());
 
-                        if (Files.notExists(inMemoryPath)) {
-                            Files.createDirectories(inMemoryPath.getParent());
-                            Files.write(inMemoryPath, IOUtils.toByteArray(stream), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                    if (Files.notExists(inMemoryPath)) {
+                        Files.createDirectories(inMemoryPath.getParent());
+                        Files.write(inMemoryPath, IOUtils.toByteArray(stream), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
 
-                            Classes.addURL(classLoader, inMemoryPath.toUri().toURL());
+                        Classes.addURL(classLoader, inMemoryPath.toUri().toURL());
 
-                            addNestedJARs(classLoader, inMemoryPath);
-                        }
+                        addNestedJARs(classLoader, inMemoryPath);
                     }
-
-                    entry = stream.getNextJarEntry();
                 }
-            } catch (IOException exception) {
-                throw GrossFabricHacks.Common.crash(exception);
+
+                entry = stream.getNextJarEntry();
             }
+        } catch (IOException exception) {
+            throw GrossFabricHacks.Common.crash(exception);
         }
     }
 
