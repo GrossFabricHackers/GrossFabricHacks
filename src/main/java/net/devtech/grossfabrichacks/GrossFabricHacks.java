@@ -73,7 +73,7 @@ public class GrossFabricHacks implements LanguageAdapter {
         }
 
         static {
-            URLAdder.addURL(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
+            URLAdder.addJAR(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
 
             classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
             classLoader.override(Common.class);
