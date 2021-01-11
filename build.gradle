@@ -1,14 +1,14 @@
 plugins {
     id("java-library")
     id("maven-publish")
-    id("fabric-loom").version("0.5-SNAPSHOT").apply(false)
+    id("fabric-loom").version("0.6-SNAPSHOT").apply(false)
 }
 
 project.group = "net.devtech"
-project.version = "1.0.0"
+project.version = "1.0.1"
 
 final String minecraftVersion = "1.16.4"
-final String yarnBuild = "7"
+final String yarnBuild = "9"
 
 sourceCompatibility = 8
 targetCompatibility = 8
@@ -26,28 +26,28 @@ allprojects {
     dependencies {
         minecraft("com.mojang:minecraft:${minecraftVersion}")
         mappings("net.fabricmc:yarn:${minecraftVersion}+build.${yarnBuild}:v2")
-        modApi("net.fabricmc:fabric-loader:+")
+        modApi("net.fabricmc:fabric-loader:latest.release")
 
-        testImplementation("org.junit.jupiter:junit-jupiter:+")
+        testImplementation("org.junit.jupiter:junit-jupiter:latest.release")
 
         // concern
         // extraLibs files("${System.getProperty('java.home')}/../lib/tools.jar")
 
+        modApi(include("net.bytebuddy:byte-buddy-agent:latest.release"))
+        modApi(include("net.gudenau.lib:unsafe:latest.release"))
+        modApi(include("user11681:dynamicentry:latest.release"))
+        modApi(include("user11681:reflect:latest.release"))
+
         // log spam control
-        modApi("user11681:narratoroff:+")
-        modApi("user11681:noauth:+")
+        modRuntime("user11681:narratoroff:+")
+        modRuntime("user11681:noauth:+")
 
-        modApi(include("net.bytebuddy:byte-buddy-agent:+"))
-        modApi(include("net.gudenau.lib:unsafe:+"))
-        modApi(include("user11681:dynamicentry:+"))
-        modApi(include("user11681:reflect:+"))
-
-//        modImplementation("curse.maven:antixray-411170:3149338")
-        modImplementation("curse.maven:xaerosminimap-263420:3153530")
-        modImplementation("net.fabricmc.fabric-api:fabric-api:0.29.3+1.16")
+//        modRuntime("curse.maven:antixray-411170:3149338")
+        modRuntime("curse.maven:xaerosminimap-263420:3153530")
+        modRuntime("net.fabricmc.fabric-api:fabric-api:0.29.3+1.16")
     }
 
-    [tasks.remapJar, tasks.remapSourcesJar].forEach {Task task ->
+    [tasks.remapJar/*, tasks.remapSourcesJar*/].forEach {Task task ->
         task.doLast {
             task.inputs.files.forEach {File file ->
                 file.delete()
@@ -86,13 +86,8 @@ publishing {
             artifactId = project.name
             version = project.version
 
-            artifact(remapJar) {
-                builtBy(remapJar)
-            }
-
-            artifact(sourcesJar) {
-                builtBy(remapSourcesJar)
-            }
+            artifact(remapJar).builtBy(tasks.remapJar)
+            artifact(sourcesJar).builtBy(tasks.remapSourcesJar)
         }
     }
 

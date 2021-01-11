@@ -1,6 +1,7 @@
 package net.devtech.grossfabrichacks;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.function.Consumer;
 import net.devtech.grossfabrichacks.entrypoints.PrePrePreLaunch;
@@ -43,7 +44,7 @@ public class GrossFabricHacks implements LanguageAdapter {
          */
         public static final String CLASS_PROPERTY = "gfh.common.classes";
         /**
-         * The delimiter used when storing arrays as system properties.
+         * The delimiter used for array elements in system properties.
          */
         public static final String DELIMITER = ",";
 
@@ -73,12 +74,14 @@ public class GrossFabricHacks implements LanguageAdapter {
         }
 
         static {
+            Classes.load(null, Files.class.getName() + "$FileTypeDetectors");
+
             URLAdder.addURL(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
 
             classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
 
-            for (String klass : System.clearProperty(CLASS_PROPERTY).split(DELIMITER)) {
-                classLoader.override(originalClassLoader, klass);
+            for (Object klass : (Object[]) System.getProperties().remove(CLASS_PROPERTY)) {
+                classLoader.override((Class<?>) klass);
             }
         }
     }
@@ -87,8 +90,8 @@ public class GrossFabricHacks implements LanguageAdapter {
         LogManager.getLogger("GrossFabricHacks").info("no good? no, this man is definitely up to evil.");
 
         if (!Relauncher.relaunched()) {
-            MutableBoolean relaunch = new MutableBoolean();
-            List<String> entrypointNames = new ObjectArrayList<>();
+            final List<String> entrypointNames = new ObjectArrayList<>();
+            final MutableBoolean relaunch = new MutableBoolean();
 
             Consumer<RelaunchEntrypoint> handler = (RelaunchEntrypoint entrypoint) -> {
                 entrypointNames.add(entrypoint.getClass().getName());
@@ -106,14 +109,13 @@ public class GrossFabricHacks implements LanguageAdapter {
             }
         }
 
-        String[] bootstrapClasses = new String[]{
+        Object[] bootstrapClasses = new Object[]{
             "net.gudenau.lib.unsafe.Unsafe",
             "user11681.reflect.Accessor",
             "user11681.reflect.Classes",
             "user11681.reflect.Fields",
             "user11681.reflect.Invoker",
             "user11681.reflect.Reflect",
-            "net.bytebuddy.agent.Installer",
             "net.devtech.grossfabrichacks.unsafe.UnsafeUtil",
             "net.devtech.grossfabrichacks.transformer.asm.RawClassTransformer",
             "net.devtech.grossfabrichacks.transformer.asm.AsmClassTransformer",
@@ -124,13 +126,13 @@ public class GrossFabricHacks implements LanguageAdapter {
             "net.devtech.grossfabrichacks.loader.GrossClassLoader"
         };
 
-        System.setProperty(Common.CLASS_PROPERTY, String.join(Common.DELIMITER, bootstrapClasses));
-
         ClassLoader preKnotClassLoader = GrossFabricHacks.class.getClassLoader().getClass().getClassLoader();
 
-        for (String klass : bootstrapClasses) {
-            UnsafeUtil.findClass(klass, preKnotClassLoader);
+        for (int i = 0, length = bootstrapClasses.length; i < length; i++) {
+            bootstrapClasses[i] = UnsafeUtil.findClass((String) bootstrapClasses[i], preKnotClassLoader);
         }
+
+        System.getProperties().put(Common.CLASS_PROPERTY, bootstrapClasses);
 
         Unsafe.ensureClassInitialized(UnsafeUtil.findClass(GrossFabricHacks.class.getName() + "$Common", preKnotClassLoader));
 
