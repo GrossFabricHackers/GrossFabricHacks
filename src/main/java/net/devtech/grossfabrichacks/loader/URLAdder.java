@@ -71,4 +71,8 @@ public class URLAdder {
             }
         }
     }
+
+    static {
+        Classes.load(null, Files.class.getName() + "$FileTypeDetectors");
+    }
 }

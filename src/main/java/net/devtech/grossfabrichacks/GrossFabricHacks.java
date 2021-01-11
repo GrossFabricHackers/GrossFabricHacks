@@ -1,7 +1,6 @@
 package net.devtech.grossfabrichacks;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.function.Consumer;
 import net.devtech.grossfabrichacks.entrypoints.PrePrePreLaunch;
@@ -74,11 +73,10 @@ public class GrossFabricHacks implements LanguageAdapter {
         }
 
         static {
-            Classes.load(null, Files.class.getName() + "$FileTypeDetectors");
-
             URLAdder.addURL(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
 
             classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
+            classLoader.override(Common.class);
 
             for (Object klass : (Object[]) System.getProperties().remove(CLASS_PROPERTY)) {
                 classLoader.override((Class<?>) klass);
@@ -122,8 +120,8 @@ public class GrossFabricHacks implements LanguageAdapter {
             "net.devtech.grossfabrichacks.transformer.TransformerApi",
             "net.devtech.grossfabrichacks.instrumentation.AsmInstrumentationTransformer",
             "net.devtech.grossfabrichacks.instrumentation.InstrumentationApi",
-            "net.devtech.grossfabrichacks.loader.URLAdder",
-            "net.devtech.grossfabrichacks.loader.GrossClassLoader"
+            "net.devtech.grossfabrichacks.loader.GrossClassLoader",
+            "net.devtech.grossfabrichacks.loader.URLAdder"
         };
 
         ClassLoader preKnotClassLoader = GrossFabricHacks.class.getClassLoader().getClass().getClassLoader();

@@ -5,7 +5,7 @@ plugins {
 }
 
 project.group = "net.devtech"
-project.version = "1.0.1"
+project.version = "1.0.2"
 
 final String minecraftVersion = "1.16.4"
 final String yarnBuild = "9"
