@@ -1,6 +1,7 @@
 package net.devtech.grossfabrichacks;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import java.net.URL;
 import java.util.List;
 import java.util.function.Consumer;
 import net.devtech.grossfabrichacks.entrypoints.PrePrePreLaunch;
@@ -73,7 +74,13 @@ public class GrossFabricHacks implements LanguageAdapter {
         }
 
         static {
-            URLAdder.addJAR(originalClassLoader, Common.class.getProtectionDomain().getCodeSource().getLocation());
+            URL gfhLocation = Common.class.getProtectionDomain().getCodeSource().getLocation();
+
+            if (gfhLocation.getFile().endsWith(".jar")) {
+                URLAdder.addJAR(originalClassLoader, gfhLocation);
+            } else {
+                Classes.addURL(originalClassLoader, gfhLocation);
+            }
 
             classLoader = Classes.staticCast(Reflect.defaultClassLoader = targetClassLoader, UnsafeKnotClassLoader.class);
             classLoader.override(Common.class);
