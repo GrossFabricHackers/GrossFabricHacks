@@ -1,7 +1,7 @@
 package net.devtech.grossfabrichacks.loader;
 
 import java.util.Map;
-import net.devtech.grossfabrichacks.GrossFabricHacks;
+import net.devtech.grossfabrichacks.util.Util;
 
 public interface GrossClassLoader {
     Class<?> getLoadedClass(String name);
@@ -17,10 +17,6 @@ public interface GrossClassLoader {
     }
 
     default void override(ClassLoader classLoader, String name) {
-        try {
-            this.override(classLoader.loadClass(name));
-        } catch (ClassNotFoundException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+        Util.handle(() -> this.override(classLoader.loadClass(name)));
     }
 }

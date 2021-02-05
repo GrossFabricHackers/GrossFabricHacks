@@ -7,8 +7,8 @@ plugins {
 project.group = "net.devtech"
 project.version = "1.0.3"
 
-final String minecraftVersion = "1.16.4"
-final String yarnBuild = "9"
+final String minecraftVersion = "1.16.5"
+final String yarnBuild = "3"
 
 sourceCompatibility = 8
 targetCompatibility = 8
@@ -20,6 +20,7 @@ allprojects {
         mavenLocal()
 
         maven {url = "https://dl.bintray.com/user11681/maven"}
+        maven {url = "https://maven.terraformersmc.com/releases"}
         maven {url = "https://www.cursemaven.com"}
     }
 
@@ -38,21 +39,17 @@ allprojects {
         modApi(include("user11681:dynamicentry:latest.release"))
         modApi(include("user11681:reflect:latest.release"))
 
+        modApi("com.terraformersmc:modmenu:latest.release")
+
         // log spam control
         modRuntime("user11681:narratoroff:+")
         modRuntime("user11681:noauth:+")
 
-//        modRuntime("curse.maven:antixray-411170:3149338")
-        modRuntime("curse.maven:xaerosminimap-263420:3153530")
         modRuntime("net.fabricmc.fabric-api:fabric-api:0.29.3+1.16")
     }
 
-    [tasks.remapJar/*, tasks.remapSourcesJar*/].forEach {Task task ->
-        task.doLast {
-            task.inputs.files.forEach {File file ->
-                file.delete()
-            }
-        }
+    tasks.remapJar.doLast {
+        inputs.files.forEach {delete()}
     }
 
 // ensure that the encoding is set to UTF-8, no matter what the system default is

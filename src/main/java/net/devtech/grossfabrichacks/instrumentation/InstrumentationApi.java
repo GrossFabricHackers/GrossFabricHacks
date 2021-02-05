@@ -1,13 +1,12 @@
 package net.devtech.grossfabrichacks.instrumentation;
 
 import java.lang.instrument.Instrumentation;
-import java.lang.instrument.UnmodifiableClassException;
 import java.util.HashSet;
 import java.util.Set;
 import net.bytebuddy.agent.ByteBuddyAgent;
-import net.devtech.grossfabrichacks.GrossFabricHacks;
 import net.devtech.grossfabrichacks.transformer.TransformerApi;
 import net.devtech.grossfabrichacks.transformer.asm.RawClassTransformer;
+import net.devtech.grossfabrichacks.util.Util;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import user11681.reflect.Classes;
@@ -69,7 +68,7 @@ public class InstrumentationApi {
      * @param transformer the class transformer.
      */
     public static void retransform(Class<?> cls, RawClassTransformer transformer) {
-        try {
+        Util.handle(() -> {
             CompatibilityClassFileTransformer fileTransformer = (loader, className, classBeingRedefined, protectionDomain, classfileBuffer) -> {
                 if (cls == classBeingRedefined) {
                     return transformer.transform(className, classfileBuffer);
@@ -81,9 +80,7 @@ public class InstrumentationApi {
             instrumentation.addTransformer(fileTransformer, true);
             instrumentation.retransformClasses(cls);
             instrumentation.removeTransformer(fileTransformer);
-        } catch (UnmodifiableClassException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+        });
     }
 
     public static ClassNode getNode(Class<?> klass) {
@@ -99,11 +96,7 @@ public class InstrumentationApi {
 
         instrumentation.addTransformer(transformer);
 
-        try {
-            instrumentation.retransformClasses(klass);
-        } catch (UnmodifiableClassException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+        Util.handle(() -> instrumentation.retransformClasses(klass));
 
         instrumentation.removeTransformer(transformer);
 

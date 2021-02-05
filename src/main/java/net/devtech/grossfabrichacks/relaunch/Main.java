@@ -9,17 +9,25 @@ import org.jetbrains.annotations.ApiStatus.Experimental;
 public class Main {
     public static final String NAME = "net.devtech.grossfabrichacks.relaunch.Main";
 
-    public static void main(String[] args) throws Throwable {
+    @SuppressWarnings("RedundantClassCall")
+    public static void main(String... args) throws Throwable {
         String entrypoints = System.clearProperty(Relauncher.ENTRYPOINT_PROPERTY);
 
         if (entrypoints != null) {
-            Class.forName("net.devtech.grossfabrichacks.entrypoints.RelaunchEntrypoint");
-
             for (String entrypoint : entrypoints.split(GrossFabricHacks.Common.DELIMITER)) {
-                ((RelaunchEntrypoint) TransformingClassLoader.instance.loadClass(entrypoint).getDeclaredConstructor().newInstance()).onRelaunch();
+                RelaunchEntrypoint.class.cast(TransformingClassLoader.instance.loadClass(entrypoint).getDeclaredConstructor().newInstance()).onRelaunch();
             }
         }
 
         TransformingClassLoader.instance.loadClass(args[0]).getDeclaredMethod("main", String[].class).invoke(null, (Object) Arrays.copyOfRange(args, 1, args.length));
+    }
+
+    public static RuntimeException rethrow(Throwable throwable) throws RuntimeException {
+        return rethrowInternal(throwable);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> RuntimeException rethrowInternal(Throwable throwable) throws T {
+        throw (T) throwable;
     }
 }

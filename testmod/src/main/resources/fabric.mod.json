@@ -5,9 +5,11 @@
     "name": "test mod",
     "entrypoints": {
         "gfh:relaunch": [
+            "gfh.GrossTest"
         ],
         "gfh:prePrePreLaunch": [
-            "GrossTest"
+            "gfh.GrossTest"
         ]
-    }
+    },
+    "mixins": ["mixins.json"]
 }

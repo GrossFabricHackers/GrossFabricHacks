@@ -13,6 +13,8 @@ import user11681.reflect.Classes;
 public class UnsafeUtil {
     public static final FabricLauncherBase launcher = (FabricLauncherBase) FabricLauncherBase.getLauncher();
 
+//    private static final MethodHa
+
     // constants
     public static final long BYTE_ARR_KLASS;
     public static final long SHORT_ARR_KLASS;

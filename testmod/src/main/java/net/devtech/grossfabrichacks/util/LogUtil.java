@@ -1,7 +1,6 @@
 package net.devtech.grossfabrichacks.util;
 
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
-import net.devtech.grossfabrichacks.GrossFabricHacks;
 
 public class LogUtil {
     public static void logMeanTime(TestInfo... tests) {
@@ -76,7 +75,7 @@ public class LogUtil {
                 test.accept(i);
             }
         } catch (Throwable throwable) {
-            throw GrossFabricHacks.Common.crash(throwable);
+            throw Util.crash(throwable);
         }
 
         return (System.nanoTime() - start) / 1000000000D;

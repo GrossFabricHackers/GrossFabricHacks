@@ -13,6 +13,7 @@ import java.util.Locale;
 import net.devtech.grossfabrichacks.GrossFabricHacks;
 import net.devtech.grossfabrichacks.loader.URLAdder;
 import net.devtech.grossfabrichacks.relaunch.Relauncher;
+import net.devtech.grossfabrichacks.util.Util;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.discovery.ModResolver;
 import org.apache.logging.log4j.LogManager;
@@ -93,7 +94,7 @@ public class ClassLoaderReloader {
 
             return newAppClassLoader;
         } catch (Throwable throwable) {
-            throw GrossFabricHacks.Common.crash(throwable);
+            throw Util.crash(throwable);
         }
     }
 
@@ -107,7 +108,7 @@ public class ClassLoaderReloader {
         try {
             ((Closeable) (Accessor.getObject(ModResolver.class, "inMemoryFs"))).close();
         } catch (IOException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
+            throw Util.crash(exception);
         }
 
         System.setProperty("fabric.side", FabricLoader.getInstance().getEnvironmentType().name().toLowerCase(Locale.ROOT));
@@ -119,7 +120,7 @@ public class ClassLoaderReloader {
 
             System.exit(0);
         } catch (Throwable throwable) {
-            throw GrossFabricHacks.Common.crash(new RuntimeException("Reloading did not succeed.", throwable));
+            throw Util.crash(new RuntimeException("Reloading did not succeed.", throwable));
         }
     }
 }

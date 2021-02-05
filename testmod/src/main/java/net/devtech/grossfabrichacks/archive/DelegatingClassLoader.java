@@ -1,6 +1,6 @@
 package net.devtech.grossfabrichacks.archive;
 
-import net.devtech.grossfabrichacks.GrossFabricHacks;
+import net.devtech.grossfabrichacks.util.Util;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -66,7 +66,7 @@ public class DelegatingClassLoader {
 
             Classes.staticCast(preKnotClassLoader, Classes.defineClass(knotClassLoader, preKnotClassLoaderName.replace('/', '.'), writer.toByteArray(), preKnotClassLoader.getClass().getProtectionDomain()));
         } catch (Throwable throwable) {
-            throw GrossFabricHacks.Common.crash(throwable);
+            throw Util.crash(throwable);
         }
     }
 }

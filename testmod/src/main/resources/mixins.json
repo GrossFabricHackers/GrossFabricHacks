@@ -1,0 +1,6 @@
+{
+    "required": true,
+    "compatibilityLevel": "JAVA_8",
+    "package": "gfh.mixin",
+    "client": ["TitleScreenMixin"]
+}

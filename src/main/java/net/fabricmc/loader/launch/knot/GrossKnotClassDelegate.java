@@ -1,6 +1,7 @@
 package net.fabricmc.loader.launch.knot;
 
 import java.io.IOException;
+import java.net.URL;
 import net.devtech.grossfabrichacks.GrossFabricHacks;
 import net.devtech.grossfabrichacks.transformer.TransformerApi;
 import net.fabricmc.api.EnvType;
@@ -37,5 +38,10 @@ public class GrossKnotClassDelegate extends KnotClassDelegate {
         if (GrossFabricHacks.Common.shouldWrite || GrossFabricHacks.Common.shouldHackMixin) {
             TransformerApi.manualLoad();
         }
+    }
+
+    @Override
+    public MetadataAccess getMetadata(String name, URL resourceURL) {
+        return new MetadataAccess(super.getMetadata(name, resourceURL));
     }
 }

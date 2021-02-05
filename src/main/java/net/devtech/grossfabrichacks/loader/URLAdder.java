@@ -3,19 +3,22 @@ package net.devtech.grossfabrichacks.loader;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
-import java.io.IOException;
-import java.net.MalformedURLException;
+import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
-import net.devtech.grossfabrichacks.GrossFabricHacks;
+import net.devtech.grossfabrichacks.util.ThrowingConsumer;
+import net.devtech.grossfabrichacks.util.Util;
 import org.apache.commons.io.IOUtils;
 import user11681.reflect.Classes;
 
@@ -33,62 +36,122 @@ public class URLAdder {
             .build()
     );
 
-    public static void addJAR(ClassLoader classLoader, URL root) {
-        try {
-            Classes.addURL(classLoader, root);
+    protected final Map<Path, URL> jars = new LinkedHashMap<>();
+    protected final List<ClassLoader> classLoaders = new ArrayList<>();
+    protected final List<OpenClassLoader> openClassLoaders = new ArrayList<>();
 
-            addNestedJARs(classLoader, Paths.get(root.toURI()));
-        } catch (URISyntaxException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+    public URLAdder loader(ClassLoader loader) {
+        this.classLoaders.add(loader);
+
+        return this;
     }
 
-    public static void addJAR(ClassLoader classLoader, URI root) {
-        try {
-            Classes.addURL(classLoader, root.toURL());
-        } catch (MalformedURLException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+    public URLAdder loader(OpenClassLoader loader) {
+        this.openClassLoaders.add(loader);
 
-        addNestedJARs(classLoader, Paths.get(root));
+        return this;
     }
 
-    public static void addJAR(ClassLoader classLoader, Path root) {
-        try {
-            Classes.addURL(classLoader, root.toUri().toURL());
-        } catch (MalformedURLException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+    public URLAdder jar(URL root) {
+        Util.handle(() -> this.jars.put(Paths.get(root.toURI()), root));
 
-        addNestedJARs(classLoader, root);
+        return this;
     }
 
-    public static void addNestedJARs(ClassLoader classLoader, Path root) {
-        try (JarInputStream stream = new JarInputStream(Files.newInputStream(root))) {
-            JarEntry entry = stream.getNextJarEntry();
+    public URLAdder jar(URI root) {
+        Util.handle(() -> this.jars.put(Paths.get(root), root.toURL()));
 
-            while (entry != null) {
-                if (entry.getName().endsWith(".jar")) {
-                    Path inMemoryPath = inMemoryFs.getPath(entry.getName());
+        return this;
+    }
 
-                    if (Files.notExists(inMemoryPath)) {
-                        Files.createDirectories(inMemoryPath.getParent());
-                        Files.write(inMemoryPath, IOUtils.toByteArray(stream), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+    public URLAdder jar(Path root) {
+        Util.handle(() -> this.jars.put(root, root.toUri().toURL()));
 
-                        Classes.addURL(classLoader, inMemoryPath.toUri().toURL());
+        return this;
+    }
 
-                        addNestedJARs(classLoader, inMemoryPath);
+    public URLAdder add() {
+        for (Map.Entry<Path, URL> jar : this.jars.entrySet()) {
+            for (ClassLoader loader : this.classLoaders) {
+                Classes.addURL(loader, jar.getValue());
+            }
+
+            for (OpenClassLoader loader : this.openClassLoaders) {
+                loader.addURL(jar.getValue());
+            }
+        }
+
+        return this;
+    }
+
+    public URLAdder addNested(URL copyLocation) {
+        return Util.handle(() -> this.addNested(Paths.get(copyLocation.toURI())));
+    }
+
+    public URLAdder addNested(URI copyLocation) {
+        return this.addNested(Paths.get(copyLocation));
+    }
+
+    public URLAdder addNested(String copyRoot) {
+        return this.addNested(Paths.get(copyRoot));
+    }
+
+    public URLAdder addNested(Path copyRoot) {
+        this.forEach(copyRoot, (Path copy) -> {
+            for (ClassLoader loader : this.classLoaders) {
+                Classes.addURL(loader, copy.toUri().toURL());
+            }
+
+            for (OpenClassLoader loader : this.openClassLoaders) {
+                loader.addURL(copy.toUri().toURL());
+            }
+
+            this.addNested(copy);
+        });
+
+        return this;
+    }
+
+    public URLAdder clear() {
+        this.jars.clear();
+        this.classLoaders.clear();
+        this.openClassLoaders.clear();
+
+        return this;
+    }
+
+    public URLAdder forEach(Path copyRoot, ThrowingConsumer<Path> action) {
+        Util.handle(() -> {
+            for (Map.Entry<Path, URL> root : this.jars.entrySet()) {
+                copy(copyRoot.resolve(root.getKey().getFileName().toString()), Files.newInputStream(root.getKey()), action);
+
+                try (JarInputStream stream = new JarInputStream(Files.newInputStream(root.getKey()))) {
+                    JarEntry entry = stream.getNextJarEntry();
+
+                    while (entry != null) {
+                        if (entry.getName().endsWith(".jar")) {
+                            copy(copyRoot.resolve(entry.getName()), stream, action);
+                        }
+
+                        entry = stream.getNextJarEntry();
                     }
                 }
-
-                entry = stream.getNextJarEntry();
             }
-        } catch (IOException exception) {
-            throw GrossFabricHacks.Common.crash(exception);
-        }
+        });
+
+        return this;
+    }
+
+    private static void copy(Path path, InputStream input, ThrowingConsumer<Path> action) {
+        Util.handle(() -> {
+            Files.createDirectories(path.getParent());
+            Files.write(path, IOUtils.toByteArray(input), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+
+            action.accept(path);
+        });
     }
 
     static {
-        Classes.load(null, Files.class.getName() + "$FileTypeDetectors");
+        Util.handle(() -> Class.forName(Files.class.getName() + "$FileTypeDetectors", true, null));
     }
 }

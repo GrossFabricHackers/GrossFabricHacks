@@ -41,7 +41,7 @@ public class UnsafeKnotClassLoader extends KnotClassLoader implements GrossClass
             Class<?> klass;
 
             if ((klass = overridingClasses.get(name)) == null && (klass = super.findLoadedClass(name)) == null) {
-                if (name.startsWith("com.google.gson.")) {
+                if (name.startsWith("java.") || name.startsWith("com.google.gson.")) {
                     klass = preKnotClassLoader.loadClass(name);
                 } else {
                     byte[] input = delegate.getPostMixinClassByteArray(name);
@@ -49,10 +49,10 @@ public class UnsafeKnotClassLoader extends KnotClassLoader implements GrossClass
                     if (input == null) {
                         klass = preKnotClassLoader.loadClass(name);
                     } else {
-                        final int packageEnd = name.lastIndexOf('.');
+                        int packageEnd = name.lastIndexOf('.');
 
                         if (packageEnd > 0) {
-                            final String packageName = name.substring(0, packageEnd);
+                            String packageName = name.substring(0, packageEnd);
 
                             if (super.getPackage(packageName) == null) {
                                 super.definePackage(packageName, null, null, null, null, null, null, null);

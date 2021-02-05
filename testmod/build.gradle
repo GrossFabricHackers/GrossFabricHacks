@@ -2,8 +2,17 @@ plugins {
     id("java-library")
 }
 
+targetCompatibility = sourceCompatibility = 8
+
+repositories {
+    maven {url = "https://maven.terraformersmc.com/releases"}
+}
+
 dependencies {
-    api(project(":"))
+    api(include(project(":")))
+
+    modApi("com.terraformersmc:modmenu:latest.release").transitive(false)
+    modApi("net.fabricmc.fabric-api:fabric-api:0.29.4+1.16")
 
     implementation("org.junit.jupiter:junit-jupiter:+")
 }

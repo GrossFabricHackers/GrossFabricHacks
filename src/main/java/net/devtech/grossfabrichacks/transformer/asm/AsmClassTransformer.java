@@ -19,12 +19,14 @@ public interface AsmClassTransformer extends RawClassTransformer {
         ClassNode node = new ClassNode();
         new ClassReader(data).accept(node, 0);
 
-        this.transform(node);
+        if (this.transform(node)) {
+            ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+            node.accept(writer);
 
-        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-        node.accept(writer);
+            return writer.toByteArray();
+        }
 
-        return writer.toByteArray();
+        return data;
     }
 
     default AsmClassTransformer andThen(AsmClassTransformer fixer) {
